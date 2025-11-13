@@ -1,4 +1,5 @@
-﻿using System;
+﻿using M17A_Library.Book;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,6 +20,17 @@ namespace M17A_Library
             InitializeComponent();
 
             database = new Database("Library");
+        }
+
+        private void sairToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void livrosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            fBook form = new fBook(database);
+            form.Show();
         }
     }
 }

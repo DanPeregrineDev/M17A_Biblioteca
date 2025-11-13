@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,11 +9,12 @@ using Microsoft.Data.SqlClient;
 
 namespace M17A_Library
 {
-    internal class Database
+    public class Database
     {
         string databaseName;
         string connectionString;
         string databasePath;
+        SqlConnection sqlConnection;
 
         public Database(string databaseName) 
         {
@@ -27,6 +29,10 @@ namespace M17A_Library
             {
                 createDatabase();
             }
+
+            sqlConnection = new SqlConnection(connectionString);
+            sqlConnection.Open();
+            sqlConnection.ChangeDatabase(this.databaseName);
         }
 
         void createDatabase()
@@ -52,24 +58,56 @@ namespace M17A_Library
 
             sqlConnection.ChangeDatabase(this.databaseName);
 
-            sql = @"CREATE TABLE Livros(
+            sql = @"CREATE TABLE Books(
                   
-                      nLivro INT IDENTITY PRIMARY KEY,
+                      nBook INT IDENTITY PRIMARY KEY,
 
-                      Titulo VARCHAR(50) NOT NULL,
-                      Autor VARCHAR(100) NOT NULL,
+                      Title VARCHAR(50) NOT NULL,
+                      Author VARCHAR(100) NOT NULL,
                       Isbn VARCHAR(13) NOT NULL,
-                      Ano INT CHECK(ANO > 0) NOT NULL,
-                      DataAquisicao DATE DEFAULT GETDATE(),
-                      Preco MONEY CHECK(Preco >= 0) NOT NULL,
-                      Capa VARCHAR(500),
-                      Estado BIT DEFAULT 1
+                      Year INT CHECK(ANO > 0) NOT NULL,
+                      AquisitionDate DATE DEFAULT GETDATE(),
+                      Price MONEY CHECK(Preco >= 0) NOT NULL,
+                      CoverImage VARCHAR(500),
+                      State BIT DEFAULT 1
 
                     )";
 
             command = new SqlCommand(sql, sqlConnection);
             command.ExecuteNonQuery();
             command.Dispose();
+        }
+
+        public void ExecuteSQL(string sql, List<SqlParameter> parameters = null)
+        {
+            SqlCommand command = new SqlCommand(sql, sqlConnection);
+
+            if (parameters != null)
+            {
+                command.Parameters.AddRange(parameters.ToArray());
+            }
+
+            command.ExecuteNonQuery();
+            command.Dispose();
+        }
+
+        public DataTable DevelopSQL(string sql, List<SqlParameter> parameters = null)
+        {
+            SqlCommand command = new SqlCommand(sql, sqlConnection);
+
+            if (parameters != null)
+            {
+                command.Parameters.AddRange(parameters.ToArray());
+            }
+
+            SqlDataReader data = command.ExecuteReader();
+            DataTable table = new DataTable();
+
+            table.Load(data);
+            command.Dispose();
+            data.Close();
+
+            return table;
         }
     }
 }
